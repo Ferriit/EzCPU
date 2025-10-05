@@ -1,2 +1,2 @@
 # EzCPU
-## Very Ez
+Very ez indeed!
