@@ -1,6 +1,6 @@
 # FMBYAS
 ### (Pronounced "Femboy Ass")
-## Formattable Multi-architecture Based Yield ASsembly
+## Formattable Multi-architecture Based Yield Assembly
 
 ## OPCODES:
 ### Register and Memory Control:
@@ -49,6 +49,7 @@ JGT = Jumps if the CMPREG register is 110 (greather than)           (jgt [label 
 JLT = Jumps if the CMPREG register is 101 (less than)               (jtl [label name])
 JGE = Jumps if the CMPREG register is 010 (greather than or equal)  (jge [label name])
 JLE = Jumps if the CMPREG register is 001 (less than or equal)      (jle [label name])
+JFR = Jumps to the place that a register is pointing to (PC)        (jfr [register])
 CALL = Calls a subroutine that saves to stack when returned         (call [label name])
 RET = Returns a value from register in a subroutine                 (ret [register])
 ```
@@ -60,3 +61,19 @@ HLT = Halts execution until resume button is pressed                (hlt)
 WAIT = Halts for the amount of cycles described by a register       (wait [register])
 WAITI = Halts for a certain amount of cycles                        (waiti [value])
 ```
+
+## REGISTERS:
+```
+r0 - r14: General purpose registers
+funcret: Stores the memory address you called a function from
+cmpreg: Stores the result from a comparison:
+    > 000 -> Equal comparison
+    > 1xx -> Not equal comparison
+    > 110 -> Greater than comparison
+    > 101 -> Less than comparison
+    > 010 -> Greater than or equal comparison
+    > 001 -> Less than or equal comparison
+pc: Program counter. What the index of the currently executed instruction is
+stackptr: The length of the stack
+dbg: Debug register. Gets printed every instruction in the simulator and outputed each instruction on the Scrap Mechanic CPU
+io0 - io3: 

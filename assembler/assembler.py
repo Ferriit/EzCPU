@@ -1,6 +1,7 @@
 import sys
 import os
 import re
+import subprocess
 from cpu import regs, memry, stack
 from opcodes import opCodes, signatures
 import inspect
@@ -46,33 +47,56 @@ def assemble(args: list[str]):
 
 
 def parseAssembly(code: list[str]):
+    labels = {"start": 0}
+
     byteCode = b""
     validOpCodes = [name.lower() for name, func in inspect.getmembers(opCodes, predicate=inspect.isfunction)]
     validOpCodes.pop(validOpCodes.index("__init__"))
     print(list(regs.keys()))
     
+    i = 0
+
     for line in code:
         lineArgs = line.split(" ")
         opCode = lineArgs[0].lower()
         args = lineArgs[1:]
 
         if opCode in validOpCodes:
-            byteCode += bytes([validOpCodes.index(opCode)])
-            argA, argB = signatures[opCode]
-            match argA:
-                case 0:
-                    byteCode += b"\x00\x00"
-                case 1:
-                    byteCode += bytes([])
-            
-            match argB:
-                case 0:
-                    byteCode += b"\x00\x00"
-                case 1:
-                    byteCode += bytes([])
+            if opCode != "labl":
+                byteCode += bytes([validOpCodes.index(opCode)])
+                argA, argB = signatures[opCode]
+                match argA:
+                    case 0:
+                        byteCode += b"\x00\x00"
+                    case 1:
+                        byteCode += int(args[0]).to_bytes(2, byteorder="big")
+                    case 2:
+                        byteCode += list(regs.keys()).index(args[0]).to_bytes(2, byteorder="big")
+                    case 3:
+                        byteCode += int(args[0]).to_bytes(2, byteorder="big")
+                    case 4:
+                        byteCode += int(labels[args[0]]).to_bytes(2, byteorder="big")
+
+                match argB:
+                    case 0:
+                        byteCode += b"\x00\x00"
+                    case 1:
+                        byteCode += int(args[1]).to_bytes(2, byteorder="big")
+                    case 2:
+                        byteCode += list(regs.keys()).index(args[1]).to_bytes(2, byteorder="big")
+                    case 3:
+                        byteCode += int(args[1]).to_bytes(2, byteorder="big")
+                    case 4:
+                        byteCode += int(labels[args[1]]).to_bytes(2, byteorder="big")
+
+            elif opCode == "labl":
+                labels[args[0]] = i
+
         else:
             log(logTypes.ERROR, "AS001", f"Unknown opcode: {opCode}")
             cleanup()
+
+        i += 1
 
     return byteCode
 
@@ -81,8 +105,17 @@ def cleanup():
 
 
 def main():
-    print(assemble(sys.argv[1:]))
+    bytecode = assemble(sys.argv[1:])
+    open("a.bytes", "wb").write(bytecode)
+    print("Assembly complete. Bytecode written to a.bytes")
+    #print(bytecode.decode(encoding="utf-8", errors="strict"))
+    print(bytecode)
+    print(int.from_bytes(bytecode, byteorder="big"))
 
+    #try:
+    #    subprocess.run([sys.executable, "main.py"])
+    #except FileNotFoundError:
+    #    log(logTypes.ERROR, "EX002", "main.py not found")
 
 if __name__ == "__main__":
     main()

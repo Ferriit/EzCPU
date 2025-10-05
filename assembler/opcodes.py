@@ -38,14 +38,15 @@ signatures = {
 
     "labl": (ns.zero, ns.zero),
     "cmp": (ns.reg, ns.reg),
-    "jmp": (ns.val, ns.zero),
-    "je": (ns.val, ns.zero),
-    "jne": (ns.val, ns.zero),
-    "jgt": (ns.val, ns.zero),
-    "jge": (ns.val, ns.zero),
-    "jlt": (ns.val, ns.zero),
-    "jle": (ns.val, ns.zero),
-    "call": (ns.val, ns.zero),
+    "jmp": (ns.label, ns.zero),
+    "je": (ns.label, ns.zero),
+    "jne": (ns.label, ns.zero),
+    "jgt": (ns.label, ns.zero),
+    "jge": (ns.label, ns.zero),
+    "jlt": (ns.label, ns.zero),
+    "jle": (ns.label, ns.zero),
+    "jfr": (ns.reg, ns.zero),
+    "call": (ns.label, ns.zero),
     "ret": (ns.reg, ns.zero),
 
     "nop": (ns.zero, ns.zero),
@@ -59,6 +60,8 @@ class opCodes:
         self.regs = regs
         self.memry = memry
         self.stack = stack
+        self.HALTFLAG = False
+        self.freezecycles = 0
 
 ### Helpers?
     def _get_int(self, reg):
@@ -69,29 +72,32 @@ class opCodes:
 
     ### Register and Memory Control
     def LDI(self, value: int, reg: str):
-        self._set_reg(reg, value)
+        self.regs[reg] = format(value, '016b')
 
     def MOV(self, src: str, dest: str):
-        self.regs[dest] = self.regs[src]
+        self.regs[dest] = format(int(self.regs[src], 2), '016b')
 
     def LD(self, address: int, reg: str):
         self.regs[reg] = format(self.memry[address] & 0xFFFF, '016b')
 
     def STR(self, reg: str, address: int):
-        self.memry[address] = self._get_int(reg)
+        self.memry[address] = int(self.regs[reg], 2)
 
     def XCHG(self, regA: str, regB: str):
-        self.regs[regA], self.regs[regB] = self.regs[regB], self.regs[regA]
+        tempA = int(self.regs[regA], 2)
+        tempB = int(self.regs[regB], 2)
+        self.regs[regA] = format(tempB, '016b')
+        self.regs[regB] = format(tempA, '016b')
 
     def PSH(self, reg: str):
-        self.stack.append(self.regs[reg])
+        self.stack.append(format(int(self.regs[reg], 2), '016b'))
 
     def PSHI(self, value: int):
         self.stack.append(format(value & 0xFFFF, '016b'))
 
     def POP(self, reg: str):
         if self.stack:
-            self.regs[reg] = self.stack.pop()
+            self.regs[reg] = format(int(self.stack.pop(), 2), '016b')
         else:
             self.regs[reg] = "0" * 16
 
@@ -100,119 +106,143 @@ class opCodes:
             self.stack.pop()
 
     def SWP(self, regA: str, regB: str):
-        self.regs[regA], self.regs[regB] = self.regs[regB], self.regs[regA]
+        tempA = int(self.regs[regA], 2)
+        tempB = int(self.regs[regB], 2)
+        self.regs[regA] = format(tempB, '016b')
+        self.regs[regB] = format(tempA, '016b')
 
     def LEA(self, address: int, reg: str):
-        self._set_reg(reg, address)
+        self.regs[reg] = format(address, '016b')
 
     def CLR(self, reg: str):
         self.regs[reg] = "0" * 16
 
     ### Arithmetic
     def ADD(self, regA: str, regB: str):
-        self._set_reg(regA, self._get_int(regA) + self._get_int(regB))
+        result = int(self.regs[regA], 2) + int(self.regs[regB], 2)
+        self.regs[regA] = format(result & 0xFFFF, '016b')
 
     def SUB(self, regA: str, regB: str):
-        self._set_reg(regA, self._get_int(regA) - self._get_int(regB))
+        result = int(self.regs[regA], 2) - int(self.regs[regB], 2)
+        self.regs[regA] = format(result & 0xFFFF, '016b')
 
     def MUL(self, regA: str, regB: str):
-        self._set_reg(regA, self._get_int(regA) * self._get_int(regB))
+        result = int(self.regs[regA], 2) * int(self.regs[regB], 2)
+        self.regs[regA] = format(result & 0xFFFF, '016b')
 
     def DIV(self, regA: str, regB: str):
-        b = self._get_int(regB)
+        b = int(self.regs[regB], 2)
         if b == 0:
             raise ZeroDivisionError("Division by zero")
-        self._set_reg(regA, self._get_int(regA) // b)
+        result = int(self.regs[regA], 2) // b
+        self.regs[regA] = format(result & 0xFFFF, '016b')
 
     def INC(self, reg: str):
-        self._set_reg(reg, self._get_int(reg) + 1)
+        result = int(self.regs[reg], 2) + 1
+        self.regs[reg] = format(result & 0xFFFF, '016b')
 
     def DEC(self, reg: str):
-        self._set_reg(reg, self._get_int(reg) - 1)
+        result = int(self.regs[reg], 2) - 1
+        self.regs[reg] = format(result & 0xFFFF, '016b')
 
     def AND(self, regA: str, regB: str):
-        self._set_reg(regA, self._get_int(regA) & self._get_int(regB))
+        result = int(self.regs[regA], 2) & int(self.regs[regB], 2)
+        self.regs[regA] = format(result & 0xFFFF, '016b')
 
     def OR(self, regA: str, regB: str):
-        self._set_reg(regA, self._get_int(regA) | self._get_int(regB))
+        result = int(self.regs[regA], 2) | int(self.regs[regB], 2)
+        self.regs[regA] = format(result & 0xFFFF, '016b')
 
     def NOT(self, reg: str):
-        self._set_reg(reg, ~self._get_int(reg))
+        result = ~int(self.regs[reg], 2)
+        self.regs[reg] = format(result & 0xFFFF, '016b')
 
     def XOR(self, regA: str, regB: str):
-        self._set_reg(regA, self._get_int(regA) ^ self._get_int(regB))
+        result = int(self.regs[regA], 2) ^ int(self.regs[regB], 2)
+        self.regs[regA] = format(result & 0xFFFF, '016b')
 
     def SHL(self, reg: str):
-        self._set_reg(reg, self._get_int(reg) << 1)
+        result = int(self.regs[reg], 2) << 1
+        self.regs[reg] = format(result & 0xFFFF, '016b')
 
     def SHR(self, reg: str):
-        self._set_reg(reg, self._get_int(reg) >> 1)
+        result = int(self.regs[reg], 2) >> 1
+        self.regs[reg] = format(result & 0xFFFF, '016b')
 
     def RSL(self, reg: str):
-        val = self._get_int(reg)
-        self._set_reg(reg, ((val << 1) | (val >> 15)) & 0xFFFF)
+        val = int(self.regs[reg], 2)
+        result = ((val << 1) | (val >> 15)) & 0xFFFF
+        self.regs[reg] = format(result, '016b')
 
     def RSR(self, reg: str):
-        val = self._get_int(reg)
-        self._set_reg(reg, ((val >> 1) | (val << 15)) & 0xFFFF)
+        val = int(self.regs[reg], 2)
+        result = ((val >> 1) | (val << 15)) & 0xFFFF
+        self.regs[reg] = format(result, '016b')
 
     ### Flow Control
     def LABL(self, label: str):
         pass
 
     def CMP(self, regA: str, regB: str):
-        a = self._get_int(regA)
-        b = self._get_int(regB)
-        if a == b:
-            self.regs["cmpreg"] = "000"
+        a = int(self.regs[regA], 2)
+        b = int(self.regs[regB], 2)
+        # You may want to refactor this logic for clarity and correctness
+        cmpreg = ["0", "0", "0"]
         if a > b:
-            self.regs["cmpreg"] = "110"
-        if a < b:
-            self.regs["cmpreg"] = "101"
-        if a >= b:
-            self.regs["cmpreg"] = "010"
-        if a <= b:
-            self.regs["cmpreg"] = "001"
-        if a != b:
-            self.regs["cmpreg"][0] = "1"
+            cmpreg = ["0", "1", "0"]
+        elif a < b:
+            cmpreg = ["0", "0", "1"]
+        elif a == b:
+            cmpreg = ["1", "0", "0"]
+        self.regs["cmpreg"] = "".join(cmpreg)
 
+    def JMP(self, programAddress):
+        self.regs["pc"] = format(programAddress, '016b')
 
-    def JMP(self, programAddress: str):
-        pass
+    def JE(self, programAddress):
+        if self.regs["cmpreg"][0] == "1":
+            self.regs["pc"] = format(programAddress, '016b')
 
-    def JE(self, programAddress: str):
-        pass
+    def JNE(self, programAddress):
+        if self.regs["cmpreg"][0] == "0":
+            self.regs["pc"] = format(programAddress, '016b')
 
-    def JNE(self, programAddress: str):
-        pass
+    def JGT(self, programAddress):
+        if self.regs["cmpreg"] == "010":
+            self.regs["pc"] = format(programAddress, '016b')
 
-    def JGT(self, programAddress: str):
-        pass
+    def JLT(self, programAddress):
+        if self.regs["cmpreg"] == "001":
+            self.regs["pc"] = format(programAddress, '016b')
 
-    def JLT(self, programAddress: str):
-        pass
+    def JGE(self, programAddress):
+        if self.regs["cmpreg"] == "110":
+            self.regs["pc"] = format(programAddress, '016b')
 
-    def JGE(self, programAddress: str):
-        pass
+    def JLE(self, programAddress):
+        if self.regs["cmpreg"] == "101":
+            self.regs["pc"] = format(programAddress, '016b')
 
-    def JLE(self, programAddress: str):
-        pass
+    def JFR(self, register):
+        self.regs["pc"] = format(int(self.regs[register], 2), '016b')
 
-    def CALL(self, programAddress: str):
-        pass
+    def CALL(self, programAddress):
+        self.regs["funcret"] = self.regs["pc"]
+        self.regs["pc"] = format(programAddress, '016b')
 
     def RET(self, reg: str):
-        pass
+        self.stack.append(self.regs[reg])
+        self.regs["pc"] = self.regs["funcret"]
 
     ### Misc
     def NOP(self):
         pass
 
     def HLT(self):
-        pass
+        self.HALTFLAG = True
 
-    def WAITI(self, reg: str):
-        pass
+    def WAITI(self, cycles: str):
+        self.freezecycles = int(cycles, 2)
 
-    def WAIT(self, cycles: int):
-        pass
+    def WAIT(self, reg: int):
+        self.freezecycles = int(self.regs[reg], 2)
