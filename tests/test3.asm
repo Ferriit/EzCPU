@@ -1,5 +1,5 @@
 ldi 3 r0
-waiti 60000
+waiti 60
 
 mov r0 dbg
 

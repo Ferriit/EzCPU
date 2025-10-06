@@ -23,8 +23,12 @@ OPCODES = opCodes(regs, memry, stack)
 
 
 def assemble(args: list[str]):
+    print(args)
     try:
-        filepath = os.path.join(os.getcwd(), args[0])
+        if not args[0].startswith(SEPARATOR):
+            filepath = os.path.join(os.getcwd(), args[0])
+        else:
+            filepath = args[0]
         oldCode = open(filepath).read().lower()
 
     except IndexError:
@@ -64,7 +68,7 @@ def parseAssembly(code: list[str]):
         if opCode == "labl":
                 labels[args[0]] = i
         
-        i += 5
+        i += 6
 
     for line in code:
         lineArgs = line.split(" ")
@@ -73,7 +77,7 @@ def parseAssembly(code: list[str]):
 
         if opCode in validOpCodes:
             if opCode != "labl":
-                byteCode += bytes([validOpCodes.index(opCode)])
+                byteCode += bytes([validOpCodes.index(opCode)]) + b"\x00"
                 argA, argB = signatures[opCode]
                 print(bytes([validOpCodes.index(opCode)]), opCode, args)
                 match argA:
@@ -110,8 +114,8 @@ def cleanup():
     sys.exit() 
 
 
-def main():
-    bytecode = assemble(sys.argv[1:])
+def main(args):
+    bytecode = assemble(args)
     open("a.bytes", "wb").write(bytecode)
     print("Assembly complete. Bytecode written to a.bytes")
     #print(bytecode.decode(encoding="utf-8", errors="strict"))
@@ -124,4 +128,4 @@ def main():
     #    log(logTypes.ERROR, "EX002", "main.py not found")
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])

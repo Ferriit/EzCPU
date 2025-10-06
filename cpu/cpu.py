@@ -9,6 +9,6 @@ regs = {
     "intreg": "0" * 16
 }
 
-memry = [0] * 512
+memry = [0] * 4096
 
 stack = []

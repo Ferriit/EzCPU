@@ -64,6 +64,9 @@ class opCodes:
         self.HALTFLAG = False
         self.freezecycles = 0
         self.ExecuteRAM = False
+        self.VERBOSE = False
+
+        self.a = 0
 
 ### Helpers?
     def _get_int(self, reg):
@@ -83,7 +86,7 @@ class opCodes:
         self.regs[reg] = format(self.memry[address] & 0xFFFF, '016b')
 
     def STR(self, reg: str, address: int, *args):
-        self.memry[address] = int(self.regs[reg], 2) % (2 ^ 16)
+        self.memry[address] = int(self.regs[reg], 2) % (2 ** 16)
 
     def XCHG(self, regA: str, regB: str, *args):
         tempA = int(self.regs[regA], 2)
@@ -199,31 +202,31 @@ class opCodes:
         self.regs["cmpreg"] = "".join(cmpreg)
 
     def JMP(self, programAddress, *args):
-        self.regs["pc"] = format(programAddress - 5, '016b')
+        self.regs["pc"] = format(programAddress - self.a, '016b')
 
     def JE(self, programAddress, *args):
         if self.regs["cmpreg"][0] == "1":
-            self.regs["pc"] = format(programAddress - 5, '016b')
+            self.regs["pc"] = format(programAddress - self.a, '016b')
 
     def JNE(self, programAddress, *args):
         if self.regs["cmpreg"][0] == "0":
-            self.regs["pc"] = format(programAddress - 5, '016b')
+            self.regs["pc"] = format(programAddress - self.a, '016b')
 
     def JGT(self, programAddress, *args):
         if self.regs["cmpreg"] == "010":
-            self.regs["pc"] = format(programAddress - 5, '016b')
+            self.regs["pc"] = format(programAddress - self.a, '016b')
 
     def JLT(self, programAddress, *args):
         if self.regs["cmpreg"] == "001":
-            self.regs["pc"] = format(programAddress - 5, '016b')
+            self.regs["pc"] = format(programAddress - self.a, '016b')
 
     def JGE(self, programAddress, *args):
         if self.regs["cmpreg"] == "110":
-            self.regs["pc"] = format(programAddress - 5, '016b')
+            self.regs["pc"] = format(programAddress - self.a, '016b')
 
     def JLE(self, programAddress, *args):
         if self.regs["cmpreg"] == "101":
-            self.regs["pc"] = format(programAddress - 5, '016b')
+            self.regs["pc"] = format(programAddress - self.a, '016b')
 
     def JFR(self, register, *args):
         self.regs["pc"] = format(int(self.regs[register], 2), '016b')
@@ -250,4 +253,5 @@ class opCodes:
         self.freezecycles = int(self.regs[reg], 2)
     
     def CONT(self, *args):
+        self.regs["pc"] = format(0, '016b')
         self.ExecuteRAM = True
