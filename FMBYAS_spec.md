@@ -76,4 +76,6 @@ cmpreg: Stores the result from a comparison:
 pc: Program counter. What the index of the currently executed instruction is
 stackptr: The length of the stack
 dbg: Debug register. Gets printed every instruction in the simulator and outputed each instruction on the Scrap Mechanic CPU
-io0 - io3: 
+io0 - io7: I/O registers. io0 is for reading/writing to harddrive and io1 is for harddrive flags
+intreg: Interrupt register that handles what syscall to call
+```
