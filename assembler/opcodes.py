@@ -197,7 +197,7 @@ class opCodes:
         self.regs["cmpreg"] = "".join(cmpreg)
 
     def JMP(self, programAddress, *args):
-        self.regs["pc"] = format(programAddress, '016b')
+        self.regs["pc"] = format(programAddress - 5, '016b')
 
     def JE(self, programAddress, *args):
         if self.regs["cmpreg"][0] == "1":
@@ -242,7 +242,7 @@ class opCodes:
         self.HALTFLAG = True
 
     def WAITI(self, cycles: str, *args):
-        self.freezecycles = int(cycles, 2)
+        self.freezecycles = cycles
 
     def WAIT(self, reg: int, *args):
         self.freezecycles = int(self.regs[reg], 2)

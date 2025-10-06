@@ -61,10 +61,21 @@ def parseAssembly(code: list[str]):
         opCode = lineArgs[0].lower()
         args = lineArgs[1:]
 
+        if opCode == "labl":
+                labels[args[0]] = i
+        
+        i += 5
+
+    for line in code:
+        lineArgs = line.split(" ")
+        opCode = lineArgs[0].lower()
+        args = lineArgs[1:]
+
         if opCode in validOpCodes:
             if opCode != "labl":
                 byteCode += bytes([validOpCodes.index(opCode)])
                 argA, argB = signatures[opCode]
+                print(bytes([validOpCodes.index(opCode)]), opCode, args)
                 match argA:
                     case 0:
                         byteCode += b"\x00\x00"
@@ -89,14 +100,9 @@ def parseAssembly(code: list[str]):
                     case 4:
                         byteCode += int(labels[args[1]]).to_bytes(2, byteorder="big")
 
-            elif opCode == "labl":
-                labels[args[0]] = i
-
         else:
             log(logTypes.ERROR, "AS001", f"Unknown opcode: {opCode}")
             cleanup()
-
-        i += 1
 
     return byteCode
 

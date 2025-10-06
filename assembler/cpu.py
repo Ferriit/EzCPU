@@ -5,7 +5,8 @@ regs = {
     "pc": "0" * 16,
     "stackptr": "0" * 16,
     "dbg": "0" * 16,
-    **{f"io{i}": "0" * 16 for i in range(4)}
+    **{f"io{i}": "0" * 16 for i in range(8)},
+    "intreg": "0" * 16
 }
 
 memry = [0] * 512
