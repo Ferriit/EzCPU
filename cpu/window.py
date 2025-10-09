@@ -86,8 +86,7 @@ def main(bytecode):
                 ctx.blit(textSurface, (5, HEIGHT - 25))
                 ROMe.stepInstruction()
 
-            elif int(ROMe.internal_pc, 2) < len(ROMe.bytecode):
-                # Display HALT message
+            elif ROMe.OPCODES.HALTFLAG:
                 textSurface = windowFont.render(
                     f"HALTED! PRESS [C] TO CONTINUE EXECUTION (DBG={int(regs["dbg"], 2)})", True, (255, 255, 255)
                 )
