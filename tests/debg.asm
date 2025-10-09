@@ -1,6 +1,14 @@
-ldi 65535 r1
-add dbg r1
-ldi 10 r2
-ldi 1 r3
+ldi 100 r1
+psh r1
+str r1 23
+pshi 12
+pshi 14
+pshi 60
 
-mov r1 dbg
+waiti 100
+
+pop r0
+
+waiti 100
+
+srmv
