@@ -65,7 +65,7 @@ CONT = Continue execution in RAM                                    (cont)      
 
 ## REGISTERS:
 ```
-r0 - r14: General purpose registers
+r0 - r15: General purpose registers
 funcret: Stores the memory address you called a function from
 cmpreg: Stores the result from a comparison:
     > 000 -> Equal comparison
