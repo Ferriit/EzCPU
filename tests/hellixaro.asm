@@ -3,7 +3,7 @@ ldi 100 r9
 
 labl loop
    mov r0 dbg
-   waiti 1000
+   waiti 100
 
    inc r0
    cmp r0 r9
