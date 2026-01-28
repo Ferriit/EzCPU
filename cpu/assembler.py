@@ -118,14 +118,8 @@ def main(args):
     bytecode = assemble(args)
     open("a.bytes", "wb").write(bytecode)
     print("Assembly complete. Bytecode written to a.bytes")
-    #print(bytecode.decode(encoding="utf-8", errors="strict"))
     print(bytecode)
     print(int.from_bytes(bytecode, byteorder="big"))
-
-    #try:
-    #    subprocess.run([sys.executable, "main.py"])
-    #except FileNotFoundError:
-    #    log(logTypes.ERROR, "EX002", "main.py not found")
 
 if __name__ == "__main__":
     main(sys.argv[1:])

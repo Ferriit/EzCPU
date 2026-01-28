@@ -9,17 +9,15 @@ from EzCPU_ROM import OPCODES, stepInstruction
 pg.init()
 OPCODES.HALTFLAG = True
 
-# --- Screen Setup ---
 info = pg.display.Info()
 WIDTH, HEIGHT = info.current_w - 100, info.current_h - 100
 ctx = pg.display.set_mode((WIDTH, HEIGHT))
 pg.display.set_caption("EzCPU Simulator")
 
-# --- Fonts ---
 FONT = pg.font.SysFont("Consolas", 20)
 SMALL_FONT = pg.font.SysFont("Consolas", 14)
 
-# --- Colors ---
+# Fucking colors
 BLACK = (15, 15, 15)
 WHITE = (240, 240, 240)
 GREEN = (0, 200, 0)
@@ -29,7 +27,6 @@ GRAY = (50, 50, 50)
 BLUE = (0, 160, 255)
 DARK_BLUE = (10, 10, 50)
 
-# --- Layout ---
 CELL_WIDTH = max(32, WIDTH // 50)
 CELL_HEIGHT = max(24, HEIGHT // 35)
 MEM_COLS = 16
@@ -37,14 +34,14 @@ MEM_ROWS = min(16, (HEIGHT - 250) // CELL_HEIGHT)
 STACK_ROWS = min(10, (HEIGHT - 300) // CELL_HEIGHT)
 LOG_ROWS = 6
 
-# --- Load ASM Files ---
+# GET YO FILE BRUH
 tests_path = os.path.join(os.path.dirname(__file__), "..", "tests")
 asm_files = [f for f in os.listdir(tests_path) if f.endswith(".asm")]
 if not asm_files:
     print("No .asm files found in tests/")
     exit(1)
 
-# --- Select program (clickable + number keys) ---
+# IM SELECTIN ITTTTT
 def select_program():
     selected = None
     while selected is None:
@@ -73,7 +70,6 @@ def select_program():
                         selected = fname
     return os.path.join(tests_path, selected)
 
-# --- Render functions ---
 def render_memory(scroll_offset):
     start = scroll_offset * MEM_COLS
     mem_x, mem_y = WIDTH // 3, 50
@@ -131,13 +127,12 @@ def render_status():
         text = f"PROGRAM RUNNING - PC={pc_int}"
     elif not OPCODES.HALTFLAG and int(regs["pc"], 2) < len(ROMe.bytecode):
         stepInstruction()
-        pc_int = int(regs["pc"], 2)  # update PC after stepping
+        pc_int = int(regs["pc"], 2)
         text = f"PROGRAM RUNNING - PC={pc_int:04X}"
     else:
         text = "PROGRAM RAN SUCCESSFULLY"
-        OPCODES.HALTFLAG = True  # stop the loop
+        OPCODES.HALTFLAG = True 
 
-    # Draw status bar
     status_rect = pg.Rect(0, status_y, WIDTH, STATUS_HEIGHT)
     pg.draw.rect(ctx, DARK_BLUE, status_rect)
     pg.draw.rect(ctx, WHITE, status_rect, 2)
@@ -155,7 +150,6 @@ def render_log():
         ctx.blit(SMALL_FONT.render(line, True, WHITE), (log_x, log_y + i*CELL_HEIGHT))
     ctx.blit(FONT.render("Log", True, BLUE), (log_x, log_y - 25))
 
-# --- Main loop ---
 def main():
     program_file = select_program()
     bytecode = asm.assemble([program_file])
